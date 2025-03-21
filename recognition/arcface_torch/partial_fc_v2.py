@@ -55,7 +55,8 @@ class PartialFC_V2(torch.nn.Module):
 
         self.dist_cross_entropy = DistCrossEntropy()
         self.embedding_size = embedding_size
-        self.sample_rate: float = sample_rate
+        # self.sample_rate: float = sample_rate
+        self.sample_rate: float = 0.5
         self.fp16 = fp16
         self.num_local: int = num_classes // self.world_size + int(
             self.rank < num_classes % self.world_size
@@ -93,11 +94,13 @@ class PartialFC_V2(torch.nn.Module):
             if self.num_sample - positive.size(0) >= 0:
                 perm = torch.rand(size=[self.num_local]).cuda()
                 perm[positive] = 2.0
+                print(perm)
                 index = torch.topk(perm, k=self.num_sample)[1].cuda()
                 index = index.sort()[0].cuda()
             else:
                 index = positive
             self.weight_index = index
+            print(self.weight_index.size())
 
             labels[index_positive] = torch.searchsorted(index, labels[index_positive])
 
